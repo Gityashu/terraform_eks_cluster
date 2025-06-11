@@ -17,6 +17,13 @@ terraform {
       version = "~> 4.0" # Used implicitly by Kubernetes provider for TLS if needed, good to include
     }
   }
+  backend "s3" {
+    bucket = "terraform-state-bucket-inv"        # <= EXACTLY MATCH YOUR S3 BUCKET NAME
+    key    = "ec2-deployment/terraform.tfstate" # <= Path within the bucket
+    region = "us-east-1"                        # <= EXACTLY MATCH YOUR AWS_REGION SECRET
+    #dynamodb_table = "terraform-lock-table"                      # <= EXACTLY MATCH YOUR DYNAMODB TABLE NAME
+    encrypt = true
+  }
 }
 
 # Configure the AWS provider with the specified region
