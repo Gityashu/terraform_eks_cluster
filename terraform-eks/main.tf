@@ -203,7 +203,7 @@ resource "aws_eks_cluster" "eks_cluster" {
   tags = var.tags
 
   # Explicit dependencies to ensure resources are created in correct order
-  depends_on = [
+  /*depends_on = [
     aws_iam_role.eks_cluster_role,
     aws_iam_role_policy_attachment.eks_cluster_policy,
     aws_iam_role_policy_attachment.eks_service_policy,
@@ -211,7 +211,7 @@ resource "aws_eks_cluster" "eks_cluster" {
     aws_nat_gateway.eks_nat_gateway, # Ensure NAT Gateway exists if private subnets are used
     aws_subnet.eks_public_subnets,
     aws_subnet.eks_private_subnets,
-  ]
+  ]*/
 }
 
 
@@ -257,7 +257,7 @@ resource "aws_launch_template" "eks_node_template" {
     device_name = "/dev/xvda" # Or /dev/sda1 for some AMIs
     ebs {
       volume_size = 20 # GiB, adjust based on your workload needs
-      volume_type = "gp2" # General Purpose SSD
+      volume_type = "gp3" # General Purpose SSD
     }
   }
 
