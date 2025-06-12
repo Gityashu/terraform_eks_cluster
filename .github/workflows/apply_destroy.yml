@@ -1,12 +1,6 @@
-name: Terraform Workflow
+name: Terraform EKS Workflow (OIDC)
 
 on:
-  push:
-    branches:
-      - main
-  pull_request:
-    branches:
-      - main
   workflow_dispatch:
     inputs:
       action:
@@ -26,7 +20,7 @@ jobs:
   terraform:
     runs-on: ubuntu-latest
     permissions:
-      id-token: write
+      id-token: write  # Enables OIDC authentication
       contents: read
 
     steps:
@@ -38,11 +32,10 @@ jobs:
       with:
         terraform_version: ${{ env.TF_VERSION }}
 
-    - name: Configure AWS Credentials
+    - name: Configure AWS Credentials (OIDC)
       uses: aws-actions/configure-aws-credentials@v3
       with:
-        aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
-        aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+        role-to-assume: arn:aws:iam::322657503534:role/aws_eks_oidc_connectivity
         aws-region: ${{ env.AWS_REGION }}
 
     - name: Terraform Init
