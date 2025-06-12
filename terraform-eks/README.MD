@@ -1,70 +1,20 @@
-🚀 Your EKS Cluster, Built in Minutes with Terraform!
-🌟 Overview
+# Your EKS Cluster, Built in Minutes with Terraform!
+ Overview
 This project uses Terraform to quickly set up a complete Amazon EKS (Kubernetes) cluster on AWS. It automates all the hard parts like setting up networks and permissions, giving you a ready-to-use cluster for your applications.
 
-✨ What You'll Get (Key Features)
-🌐 Complete Network Setup: A secure network with public and private areas.
+ What You'll Get (Key Features)
+ Complete Network Setup: A secure network with public and private areas.
 
-🛡️ Secure Permissions: Correct AWS IAM roles for EKS and your worker machines.
+🛡 Secure Permissions: Correct AWS IAM roles for EKS and your worker machines.
 
-🧠 Managed Kubernetes: An EKS cluster that AWS handles for you.
+ Managed Kubernetes: An EKS cluster that AWS handles for you.
+ Auto-Scaling Worker Nodes: EC2 machines that automatically join your cluster and scale as needed.
 
-💻 Auto-Scaling Worker Nodes: EC2 machines that automatically join your cluster and scale as needed.
+ Basic Security: Firewall rules for cluster components.
 
-🔒 Basic Security: Firewall rules for cluster components.
+ Auto Node Connect: Worker nodes automatically connect to your cluster securely.
 
-🤝 Auto Node Connect: Worker nodes automatically connect to your cluster securely.
 
-🗺️ Architecture at a Glance
-This diagram illustrates the core components and their relationships within your deployed EKS environment.
-
-graph TD
-    subgraph AWS Cloud
-        direction LR
-        subgraph VPC (10.0.0.0/16)
-            direction TB
-
-            subgraph Public Subnets
-                id1[Public Subnet 1 (AZ-A)] --> IGW[Internet Gateway]
-                id2[Public Subnet 2 (AZ-B)] --> IGW
-            end
-
-            subgraph Private Subnets
-                id3[Private Subnet 1 (AZ-A)] --> NAT1[NAT Gateway 1]
-                id4[Private Subnet 2 (AZ-B)] --> NAT2[NAT Gateway 2]
-            end
-
-            IGW --> Internet(Internet)
-            NAT1 --> Internet
-            NAT2 --> Internet
-
-            EKS_CP[EKS Control Plane] -- Manages --> EKS_Cluster_Role(IAM Role)
-            EKS_CP -- Control Plane SG --> EKS_Cluster_SG[EKS Cluster SG]
-            EKS_CP -- API Endpoint --> id3
-            EKS_CP -- API Endpoint --> id4
-
-            EKS_NG[EKS Managed Node Group] -- EC2 Instances --> id3
-            EKS_NG -- EC2 Instances --> id4
-            EKS_NG -- Node Role SG --> EKS_Node_SG[EKS Node SG]
-            EKS_NG -- Node Role --> EKS_Node_Role(IAM Role)
-
-            EKS_Cluster_SG -- Allows 443 from --> EKS_Node_SG
-            EKS_Node_SG -- Allows 10250 from --> EKS_Cluster_SG
-            EKS_Node_SG -- Allows all traffic within --> EKS_Node_SG
-            EKS_Node_SG -- Egress all --> Internet
-        end
-    end
-
-    User[Your Machine] --> AWS_CLI[AWS CLI]
-    User --> KUBECTL[kubectl]
-    User --> TERRAFORM[Terraform]
-
-    TERRAFORM -- Deploys & Manages --> VPC
-    TERRAFORM -- Deploys & Manages --> EKS_CP
-    TERRAFORM -- Deploys & Manages --> EKS_NG
-
-    AWS_CLI -- Configures Authentication for --> KUBECTL
-    KUBECTL -- Interacts with --> EKS_CP
 
 🛠️ Prerequisites
 Before you embark on your EKS journey, ensure you have these tools ready on your local machine:
@@ -80,10 +30,6 @@ Installation Guide
 Crucial: Configure your AWS credentials using aws configure. Ensure your IAM user has permissions to create VPCs, EKS clusters, IAM roles, and more.
 
 kubectl: The command-line tool for running commands against Kubernetes clusters.
-
-Installation Guide
-
-
 
 ⚙️ Configuration (Make it Yours!)
 All the magic happens in variables.tf! Open it up and tweak the values to fit your needs:
