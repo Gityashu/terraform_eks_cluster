@@ -1,4 +1,4 @@
-name: Terraform EKS Workflow (OIDC)
+name: Terraform apply_destroy
 
 on:
   workflow_dispatch:
