@@ -35,7 +35,11 @@ variable "private_subnet_cidr_blocks" {
   type        = list(string)
   default     = ["10.0.3.0/24", "10.0.4.0/24"] # Example: two private subnets
 }
-
+variable "key_name" {
+  description = "The name of the SSH key pair to use for the EKS worker nodes."
+  type        = string
+  default     = "common-inv" # Specify your key pair name if you want to SSH into the nodes
+}
 variable "instance_type" {
   description = "EC2 instance type for EKS worker nodes."
   type        = string

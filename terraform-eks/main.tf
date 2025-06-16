@@ -251,11 +251,11 @@ EOT
 }
 
 # Launch Template for EKS worker nodes
-resource "aws_launch_template" "eks_node_template" {
-  name_prefix   = "${var.cluster_name}-node-lt-"
+resource "aws_launch_template" "eks_it" {
+  name_prefix   = "${var.cluster_name}-launch-template-"
   image_id      = data.aws_ami.eks_ami.id # Use the fetched EKS-optimized AMI
   instance_type = var.instance_type
-  key_name      = "" # Optional: Specify an EC2 Key Pair name here for SSH access to worker nodes
+  key_name      = var.key_name # Optional: Specify an EC2 Key Pair name here for SSH access to worker nodes
   vpc_security_group_ids = [aws_security_group.eks_node_sg.id] # Attach EKS node security group
 
   # EBS volume configuration for worker nodes
@@ -299,7 +299,7 @@ resource "aws_eks_node_group" "eks_node_group" {
 
   # Use the defined launch template for node configuration
   launch_template {
-    name    = aws_launch_template.eks_node_template.name
+    name    = aws_launch_template.eks_it.id
     version = "$Latest" # Always use the latest version of the launch template
   }
 
