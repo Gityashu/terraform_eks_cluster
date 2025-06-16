@@ -329,8 +329,8 @@ resource "aws_security_group" "eks_cluster_sg" {
     from_port   = 443
     to_port     = 443
     protocol    = "tcp"
-    security_groups = [aws_security_group.eks_node_sg.id] # Allow access from EKS worker nodes
-    #cidr_blocks = var.public_subnet_cidr_blocks # Allow access from public subnets for control plane
+    #security_groups = [aws_security_group.eks_node_sg.id] # Allow access from EKS worker nodes
+    cidr_blocks = [aws_vpc.eks_vpc.cidr_block] # Allow access from public subnets for control plane
     description = "Allow EKS control plane access from public subnets"
   }
 
@@ -356,36 +356,40 @@ resource "aws_security_group" "eks_node_sg" {
     from_port   = 10250 # Kubelet port
     to_port     = 10250
     protocol    = "tcp"
-    security_groups = [aws_security_group.eks_cluster_sg.id] # Allow from EKS control plane SG
+    cidr_blocks = [aws_vpc.eks_vpc.cidr_block] # Allow from the entire VPC CIDR block
+    #security_groups = [aws_security_group.eks_cluster_sg.id] # Allow from EKS control plane SG
     description = "Allow kubelet access from EKS control plane"
-  }
-
-  # Ingress for inter-node communication (allowing all traffic within the SG)
-  ingress {
-    from_port       = 0
-    to_port         = 0
-    protocol        = "-1" # All protocols
-    self            = true # Allow traffic from other instances in this security group
-    description     = "Inter-node communication"
   }
   # Ingress for cluster communication on port 443 (for API server)
   ingress {
     from_port   = 443
     to_port     = 443
     protocol    = "tcp"
-    security_groups = [aws_security_group.eks_cluster_sg.id] # Allow from EKS control plane SG
+    cidr_blocks = [ aws_vpc.eks_vpc.cidr_block] # Allow from the entire VPC CIDR block]
+    #security_groups = [aws_security_group.eks_cluster_sg.id] # Allow from EKS control plane SG
     description = "Allow API server access from EKS control plane"
   }
-
+  
   # Ingress for Load Balancer health checks
   ingress {
     from_port   = 80 # Or 443 if using HTTPS for application
     to_port     = 80
     protocol    = "tcp"
     security_groups = [aws_security_group.eks_cluster_sg.id] # Allow from EKS control plane SG
-    #cidr_blocks = ["0.0.0.0/0"] # Broad access for health checks, refine as needed for specific ALB/NLB source IPs
+    cidr_blocks = [aws_vpc.eks_vpc.cidr_block] # Broad access for health checks, refine as needed for specific ALB/NLB source IPs
     description = "Allow HTTP for Load Balancer health checks (adjust CIDR for production)"
   }
+  # Ingress for inter-node communication (allowing all traffic within the SG)
+  ingress {
+
+    from_port       = 0
+    to_port         = 0
+    protocol        = "-1" # All protocols
+    self            = true # Allow traffic from other instances in this security group
+    description     = "Inter-node communication"
+  }
+  
+
 
   # Egress rule to allow all outbound traffic from worker nodes
   egress {
