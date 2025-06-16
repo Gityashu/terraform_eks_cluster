@@ -299,7 +299,7 @@ resource "aws_eks_node_group" "eks_node_group" {
 
   # Use the defined launch template for node configuration
   launch_template {
-    name    = aws_launch_template.eks_it.id
+    name    = aws_launch_template.eks_it.name
     version = "$Latest" # Always use the latest version of the launch template
   }
 
