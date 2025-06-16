@@ -1,4 +1,4 @@
-name: Terraform apply_destroy
+name: Terraform EKS Workflow (Temporary Credentials)
 
 on:
   workflow_dispatch:
@@ -11,10 +11,6 @@ on:
         options:
           - apply
           - destroy
-      confirmation:
-        description: "Type 'CONFIRM' to proceed with destruction (required for destroy)"
-        required: false
-        default: ""
 
 env:
   AWS_REGION: us-east-1
@@ -24,7 +20,6 @@ jobs:
   terraform:
     runs-on: ubuntu-latest
     permissions:
-      id-token: write  # Enables OIDC authentication
       contents: read
 
     steps:
@@ -36,27 +31,21 @@ jobs:
       with:
         terraform_version: ${{ env.TF_VERSION }}
 
-    - name: Configure AWS Credentials (OIDC)
+    - name: Configure AWS Credentials (Temporary Access Keys)
       uses: aws-actions/configure-aws-credentials@v3
       with:
-        role-to-assume: arn:aws:iam::322657503534:role/aws_eks_oidc_connectivity
+        aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+        aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+        aws-session-token: ${{ secrets.AWS_SESSION_TOKEN }}
         aws-region: ${{ env.AWS_REGION }}
 
     - name: Terraform Init
       run: terraform init
-
-    - name: Check Destroy Confirmation
-      if: github.event.inputs.action == 'destroy'
-      run: |
-        if [[ "${{ github.event.inputs.confirmation }}" != "CONFIRM" ]]; then
-          echo "Destruction confirmation not provided or incorrect. Exiting."
-          exit 1
-        fi
 
     - name: Terraform Apply
       if: github.event.inputs.action == 'apply'
       run: terraform apply -auto-approve
 
     - name: Terraform Destroy
-      if: github.event.inputs.action == 'destroy' && github.event.inputs.confirmation == 'CONFIRM'
+      if: github.event.inputs.action == 'destroy'
       run: terraform destroy -auto-approve

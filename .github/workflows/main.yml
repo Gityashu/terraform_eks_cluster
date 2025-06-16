@@ -1,4 +1,4 @@
-name: Terraform apply_destroy
+name: Terraform EKS Workflow with (OIDC) 
 
 on:
   workflow_dispatch:
@@ -19,6 +19,7 @@ on:
 env:
   AWS_REGION: us-east-1
   TF_VERSION: 1.7.0
+  AWS_ACCOUNT_ID: ${{ secrets.AWS_ACCOUNT_ID }}
 
 jobs:
   terraform:
@@ -39,11 +40,12 @@ jobs:
     - name: Configure AWS Credentials (OIDC)
       uses: aws-actions/configure-aws-credentials@v3
       with:
-        role-to-assume: arn:aws:iam::322657503534:role/aws_eks_oidc_connectivity
+        role-to-assume: arn:aws:iam::${{ env.AWS_ACCOUNT_ID }}:role/aws_eks_oidc_connectivity
         aws-region: ${{ env.AWS_REGION }}
 
     - name: Terraform Init
       run: terraform init
+      working-directory: terraform_eks/
 
     - name: Check Destroy Confirmation
       if: github.event.inputs.action == 'destroy'
@@ -56,7 +58,18 @@ jobs:
     - name: Terraform Apply
       if: github.event.inputs.action == 'apply'
       run: terraform apply -auto-approve
+      working-directory: terraform_eks/
 
     - name: Terraform Destroy
       if: github.event.inputs.action == 'destroy' && github.event.inputs.confirmation == 'CONFIRM'
       run: terraform destroy -auto-approve
+      working-directory: terraform_eks/
+
+    
+    # Optional: Add steps to store tfstate remotely (S3 for AWS) if not already configured in your .tf files
+    - name: Upload Terraform State (if not using remote backend)
+      uses: actions/upload-artifact@v4
+      with:
+        name: terraform-state
+        path: terraform/terraform.tfstate
+      if: always() # Always upload, even if previous steps fail
