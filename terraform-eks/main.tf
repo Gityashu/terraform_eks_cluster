@@ -329,8 +329,8 @@ resource "aws_security_group" "eks_cluster_sg" {
     from_port   = 443
     to_port     = 443
     protocol    = "tcp"
-    security_groups =[aws_security_group.eks_node_sg.id] # Allow access from EKS worker nodes
-    #cidr_blocks = var.public_subnet_cidr_blocks # Allow access from public subnets for control plane
+    #security_groups =[aws_security_group.eks_node_sg.id] # Allow access from EKS worker nodes
+    cidr_blocks = var.public_subnet_cidr_blocks # Allow access from public subnets for control plane
     description = "Allow EKS control plane access from public subnets"
   }
 
