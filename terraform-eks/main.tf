@@ -407,10 +407,11 @@ resource "aws_security_group" "eks_node_sg" {
 
 # 6. Kubernetes Provider Configuration and aws-auth ConfigMap
 data "aws_eks_cluster" "eks" {
-  name = aws_eks_cluster.eks.name
+  name =var.cluster_name
+  #name = aws_eks_cluster.eks.name
 }
 data "aws_eks_cluster_auth" "eks" {
-  name = aws_eks_cluster.eks.name
+  name = var.cluster_name
 }
 
 # Kubernetes ConfigMap for aws-auth, necessary for worker nodes to join the cluster
