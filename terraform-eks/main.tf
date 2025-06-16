@@ -329,8 +329,8 @@ resource "aws_security_group" "eks_cluster_sg" {
     from_port   = 443
     to_port     = 443
     protocol    = "tcp"
-    #security_groups =[aws_security_group.eks_node_sg.id] # Allow access from EKS worker nodes
-    cidr_blocks = var.public_subnet_cidr_blocks # Allow access from public subnets for control plane
+    security_groups = [aws_security_group.eks_node_sg.id] # Allow access from EKS worker nodes
+    #cidr_blocks = var.public_subnet_cidr_blocks # Allow access from public subnets for control plane
     description = "Allow EKS control plane access from public subnets"
   }
 
@@ -382,7 +382,8 @@ resource "aws_security_group" "eks_node_sg" {
     from_port   = 80 # Or 443 if using HTTPS for application
     to_port     = 80
     protocol    = "tcp"
-    cidr_blocks = ["0.0.0.0/0"] # Broad access for health checks, refine as needed for specific ALB/NLB source IPs
+    security_groups = [aws_security_group.eks_cluster_sg.id] # Allow from EKS control plane SG
+    #cidr_blocks = ["0.0.0.0/0"] # Broad access for health checks, refine as needed for specific ALB/NLB source IPs
     description = "Allow HTTP for Load Balancer health checks (adjust CIDR for production)"
   }
 
