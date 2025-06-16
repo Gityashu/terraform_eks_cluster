@@ -182,6 +182,12 @@ resource "aws_iam_role_policy_attachment" "ec2_container_registry_readonly" {
   policy_arn = "arn:aws:iam::aws:policy/AmazonEC2ContainerRegistryReadOnly"
   role       = aws_iam_role.eks_node_group_role.name
 }
+# Add to node group role (Line 135-148)
+resource "aws_iam_role_policy_attachment" "eks_ssm_policy" {
+  policy_arn = "arn:aws:iam::aws:policy/AmazonSSMManagedInstanceCore"
+  role       = aws_iam_role.eks_node_group_role.name
+}
+
 
 
 # 3. EKS Cluster Creation
@@ -323,7 +329,8 @@ resource "aws_security_group" "eks_cluster_sg" {
     from_port   = 443
     to_port     = 443
     protocol    = "tcp"
-    cidr_blocks = var.public_subnet_cidr_blocks # Allow access from public subnets for control plane
+    security_groups =[aws_security_group.eks_node_sg.id] # Allow access from EKS worker nodes
+    #cidr_blocks = var.public_subnet_cidr_blocks # Allow access from public subnets for control plane
     description = "Allow EKS control plane access from public subnets"
   }
 
@@ -359,9 +366,8 @@ resource "aws_security_group" "eks_node_sg" {
     to_port         = 0
     protocol        = "-1" # All protocols
     self            = true # Allow traffic from other instances in this security group
-    description     = "Allow all traffic from other nodes in the same security group"
+    description     = "Inter-node communication"
   }
-
   # Ingress for cluster communication on port 443 (for API server)
   ingress {
     from_port   = 443
@@ -395,8 +401,6 @@ resource "aws_security_group" "eks_node_sg" {
 
 
 # 6. Kubernetes Provider Configuration and aws-auth ConfigMap
-
-# Data source to fetch the Kubernetes cluster authentication token
 data "aws_eks_cluster_auth" "eks_cluster_auth" {
   name = aws_eks_cluster.eks_cluster.name
 }
