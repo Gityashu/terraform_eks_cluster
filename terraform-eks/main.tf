@@ -406,12 +406,32 @@ resource "aws_security_group" "eks_node_sg" {
 
 
 # 6. Kubernetes Provider Configuration and aws-auth ConfigMap
-data "aws_eks_cluster" "eks" {
-  name =var.cluster_name
-  #name = aws_eks_cluster.eks.name
+# Data source to get EKS cluster authentication token
+data "aws_eks_cluster_auth" "eks_cluster_auth" {
+  name = aws_eks_cluster.eks_cluster.name
 }
-data "aws_eks_cluster_auth" "eks" {
-  name = var.cluster_name
+
+# Null resource to introduce a delay for EKS API endpoint to stabilize.
+# This helps resolve "tls: failed to verify certificate" errors, which
+# commonly occur due to race conditions when the EKS control plane is new.
+resource "null_resource" "wait_for_eks_endpoint" {
+  # This resource depends on the EKS cluster being fully provisioned.
+  depends_on = [
+    aws_eks_cluster.eks_cluster,
+    aws_eks_node_group.eks_node_group # Also wait for node group for better stability
+  ]
+
+  # Execute a local command (sleep) to pause Terraform for a duration.
+  # Adjust the sleep time as needed (e.g., 60-120 seconds for production).
+  provisioner "local-exec" {
+    command = "echo 'Waiting 90 seconds for EKS control plane to stabilize...'; sleep 90"
+    # For Windows systems, use: command = "timeout /t 90 /nobreak"
+  }
+
+  triggers = {
+    # This ensures the null_resource runs every time the EKS cluster ID changes
+    cluster_id = aws_eks_cluster.eks_cluster.id
+  }
 }
 
 # Kubernetes ConfigMap for aws-auth, necessary for worker nodes to join the cluster
@@ -430,25 +450,14 @@ resource "kubernetes_config_map" "aws_auth" {
         groups   = ["system:bootstrappers", "system:nodes"] # Required groups for worker nodes
       }
     ])
-    # Optional: map specific IAM users or roles to Kubernetes roles/groups
-    # For example, to grant admin access to an IAM user:
-    # mapUsers = yamlencode([
-    #   {
-    #     userarn  = "arn:aws:iam::${data.aws_caller_identity.current.account_id}:user/your-iam-admin-user"
-    #     username = "your-iam-admin-user"
-    #     groups   = ["system:masters"] # Grant admin access to the cluster
-    #   }
-    # ])
-    # Optional: map AWS account IDs for cross-account access
-    # mapAccounts = yamlencode([
-    #   "123456789012" # Replace with your AWS account ID or another account ID
-    # ])
   }
 
-  # Explicit dependencies to ensure the cluster and node group are ready before configuring aws-auth
+  # Explicit dependencies to ensure the cluster, node group, and the
+  # stability wait are complete before configuring aws-auth.
   depends_on = [
     aws_eks_cluster.eks_cluster,
-    aws_eks_node_group.eks_node_group # Ensures node group role ARN is available
+    aws_eks_node_group.eks_node_group,
+    null_resource.wait_for_eks_endpoint # Crucial for solving TLS errors
   ]
 }
 
