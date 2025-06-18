@@ -54,7 +54,12 @@ jobs:
           echo "Destruction confirmation not provided or incorrect. Exiting."
           exit 1
         fi
-
+    - name: Import aws-auth ConfigMap if already exists
+      if: github.event.inputs.action == 'apply'
+      run: |
+        terraform import kubernetes_config_map.aws_auth kube-system/aws-auth || echo "ConfigMap already managed or not yet created"
+      working-directory: terraform-eks/
+      
     - name: Terraform Apply
       if: github.event.inputs.action == 'apply'
       run: terraform apply -auto-approve
