@@ -64,6 +64,11 @@ jobs:
       if: github.event.inputs.action == 'apply'
       run: terraform apply -auto-approve
       working-directory: terraform-eks/
+      
+    - name: Update kubeconfig for EKS
+      if: github.event.inputs.action == 'destroy' && github.event.inputs.confirmation == 'CONFIRM'
+      run: |
+       aws eks update-kubeconfig --region $AWS_REGION --name my-eks-cluster
 
     - name: Terraform Destroy
       if: github.event.inputs.action == 'destroy' && github.event.inputs.confirmation == 'CONFIRM'
