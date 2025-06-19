@@ -411,6 +411,10 @@ resource "aws_security_group" "eks_node_sg" {
 
 # 6. Kubernetes Provider Configuration and aws-auth ConfigMap
 # Data source to get EKS cluster authentication token
+data "aws_eks_cluster" "cluster" {
+  name = "my-eks-cluster"
+}
+
 data "aws_eks_cluster_auth" "eks_cluster_auth" {
   name = aws_eks_cluster.eks_cluster.name
 }
