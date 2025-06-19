@@ -65,10 +65,10 @@ jobs:
       run: terraform apply -auto-approve
       working-directory: terraform-eks/
       
-    - name: Update kubeconfig for EKS
+    - name: Remove aws-auth from Terraform state
       if: github.event.inputs.action == 'destroy' && github.event.inputs.confirmation == 'CONFIRM'
-      run: |
-       aws eks update-kubeconfig --region $AWS_REGION --name my-eks-cluster
+      run: terraform state rm kubernetes_config_map.aws_auth || echo "Resource not in state or already removed"
+      working-directory: terraform-eks/
 
     - name: Terraform Destroy
       if: github.event.inputs.action == 'destroy' && github.event.inputs.confirmation == 'CONFIRM'
