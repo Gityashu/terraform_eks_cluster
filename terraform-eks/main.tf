@@ -259,6 +259,12 @@ resource "aws_launch_template" "eks_it" {
   name_prefix   = "${var.cluster_name}-launch-template-"
   image_id      = data.aws_ami.eks_ami.id # Use the fetched EKS-optimized AMI
   instance_type = var.instance_type
+  tag_specifications {
+    resource_type = "instance"
+    tags = merge(var.tags, {
+      Name = var.instance_name
+    })
+  }
   key_name      = var.key_name # Optional: Specify an EC2 Key Pair name here for SSH access to worker nodes
   vpc_security_group_ids = [aws_security_group.eks_node_sg.id] # Attach EKS node security group
 

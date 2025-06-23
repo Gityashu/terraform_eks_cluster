@@ -1,4 +1,4 @@
-# variables.tf
+
 # Copyright © 2025 Innovation AI Labs, Inc.
 
 # All rights reserved.
@@ -13,7 +13,7 @@ variable "aws_region" {
 variable "cluster_name" {
   description = "Name of the EKS cluster."
   type        = string
-  default     = "my-eks-cluster"
+  default     = "my-invlab-cluster"
 }
 
 variable "cluster_version" {
@@ -43,6 +43,12 @@ variable "key_name" {
   description = "The name of the SSH key pair to use for the EKS worker nodes."
   type        = string
   default     = "common-inv" # Specify your key pair name if you want to SSH into the nodes
+}
+variable "instance_name" {
+  description = "Name of the EKS worker node instances."
+  type        = string
+  default     = "eks-worker-node"
+  
 }
 variable "instance_type" {
   description = "EC2 instance type for EKS worker nodes."

@@ -69,12 +69,6 @@ To destroy the resources:
 terraform destroy
 ```
 
-## License
-
-MIT
-
----
-
 **Quick Start:**  
 1. Edit variables in your module call.  
 2. Run `terraform init && terraform apply`.  
